@@ -11,5 +11,8 @@ WORKDIR /var/www/html
 COPY . .
 RUN composer install --no-interaction --prefer-dist --no-progress
 
+COPY start.sh /var/www/html/start.sh
+RUN chmod +x /var/www/html/start.sh
+
 EXPOSE 8000
-CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
+CMD ["sh", "start.sh"]
