@@ -1,0 +1,82 @@
+openapi: 3.0.3
+info:
+  title: Bibliotheque API
+  version: 1.0.0
+  description: API REST de gestion de livres, membres et emprunts.
+servers:
+  - url: http://127.0.0.1:8000/api
+tags:
+  - name: Authentification
+  - name: Livres
+  - name: Membres
+  - name: Emprunts
+paths:
+  /auth/register:
+    post:
+      tags: [Authentification]
+      summary: Creer un compte
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RegisterRequest'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /auth/login:
+    post:
+      tags: [Authentification]
+      summary: Obtenir un token Sanctum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LoginRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /books:
+    get:
+      tags: [Livres]
+      summary: Lister les livres avec recherche et pagination
+      parameters:
+        - {name: search, in: query, schema: {type: string}}
+        - {name: availability, in: query, schema: {type: string, enum: [available, unavailable]}}
+        - {name: page, in: query, schema: {type: integer, minimum: 1}}
+      responses:
+        '200': {$ref: '#/components/responses/Ok'}
+  /members:
+    get:
+      tags: [Membres]
+      summary: Lister les membres
+      security: [{sanctum: []}]
+      responses: {'200': {$ref: '#/components/responses/Ok'}, '403': {$ref: '#/components/responses/Forbidden'}}
+    post:
+      tags: [Membres]
+      summary: Creer un membre
+      security: [{sanctum: []}]
+      responses: {'201': {$ref: '#/components/responses/Created'}, '422': {$ref: '#/components/responses/ValidationError'}}
+components:
+  securitySchemes:
+    sanctum: {type: http, scheme: bearer}
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [name, email, password, password_confirmation]
+      properties:
+        name: {type: string}
+        email: {type: string, format: email}
+        password: {type: string, format: password, minLength: 8}
+        password_confirmation: {type: string, format: password}
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: {type: string, format: email}
+        password: {type: string, format: password}
+  responses:
+    Ok: {description: Requete reussie}
+    Created: {description: Ressource creee}
+    Unauthorized: {description: Authentification requise}
+    Forbidden: {description: Permission insuffisante}
+    ValidationError: {description: Donnees invalides}
